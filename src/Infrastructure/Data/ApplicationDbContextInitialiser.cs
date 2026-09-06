@@ -4,11 +4,13 @@ using CleanArchitecture.Domain.ValueObjects;
 using CleanArchitecture.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CleanArchitecture.Infrastructure.Data;
 
+// dotnet ef migrations add "InitialCreate" --context ApplicationDbContext --startup-project ./src/Web --project ./src/Infrastructure --output-dir Data/Migrations
 public static class InitialiserExtensions
 {
     public static async Task InitialiseDatabaseAsync(this WebApplication app)
@@ -18,6 +20,7 @@ public static class InitialiserExtensions
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
 
         await initialiser.InitialiseAsync();
+
         await initialiser.SeedAsync();
     }
 }
@@ -44,6 +47,8 @@ public class ApplicationDbContextInitialiser
             // See https://jasontaylor.dev/ef-core-database-initialisation-strategies
             await _context.Database.EnsureDeletedAsync();
             await _context.Database.EnsureCreatedAsync();
+
+            //await _context.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
@@ -87,8 +92,6 @@ public class ApplicationDbContextInitialiser
             }
         }
 
-        // Default data
-        // Seed, if necessary
         if (!_context.TodoLists.Any())
         {
             _context.TodoLists.Add(new TodoList
@@ -104,6 +107,20 @@ public class ApplicationDbContextInitialiser
                 }
             });
 
+            await _context.SaveChangesAsync();
+        }
+
+        if (!_context.CatalogTypes.Any())
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                //await _context.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO [CatalogTypes] ([Name], [Description]) VALUES ({$"CatalogType {i}"}, {$"Description {i}"})");
+                _context.CatalogTypes.Add(new CatalogType
+                {
+                    Name = $"CatalogType {i}",
+                    Description = $"Description {i}"
+                });
+            }
             await _context.SaveChangesAsync();
         }
     }
