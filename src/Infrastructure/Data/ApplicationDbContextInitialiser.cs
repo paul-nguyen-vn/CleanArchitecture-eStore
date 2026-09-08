@@ -100,10 +100,10 @@ public class ApplicationDbContextInitialiser
                 Colour = Colour.Green,
                 Items =
                 {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
-                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
+                    new TodoItem { Title = "Make a todo list" },
+                    new TodoItem { Title = "Check off the first item" },
+                    new TodoItem { Title = "Realise you've already done two things on the list!"},
+                    new TodoItem { Title = "Reward yourself with a nice, long nap" },
                 }
             });
 

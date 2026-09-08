@@ -10,7 +10,9 @@ public class TodoLists : IEndpointGroup
 {
     public static void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.RequireAuthorization();
+        groupBuilder
+            .RequireAuthorization()
+            .RequireRateLimiting("fixed");
 
         groupBuilder.MapGet(GetTodoLists);
         groupBuilder.MapPost(CreateTodoList);
@@ -27,8 +29,6 @@ public class TodoLists : IEndpointGroup
         return TypedResults.Ok(vm);
     }
 
-    [EndpointSummary("Create a new Todo List")]
-    [EndpointDescription("Creates a new todo list using the provided details and returns the ID of the created list.")]
     public static async Task<Created<int>> CreateTodoList(ISender sender, CreateTodoListCommand command)
     {
         var id = await sender.Send(command);
@@ -36,8 +36,6 @@ public class TodoLists : IEndpointGroup
         return TypedResults.Created($"/{nameof(TodoLists)}/{id}", id);
     }
 
-    [EndpointSummary("Update a Todo List")]
-    [EndpointDescription("Updates the specified todo list. The ID in the URL must match the ID in the payload.")]
     public static async Task<Results<NoContent, BadRequest>> UpdateTodoList(ISender sender, int id, UpdateTodoListCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
@@ -47,8 +45,6 @@ public class TodoLists : IEndpointGroup
         return TypedResults.NoContent();
     }
 
-    [EndpointSummary("Delete a Todo List")]
-    [EndpointDescription("Deletes the todo list with the specified ID.")]
     public static async Task<NoContent> DeleteTodoList(ISender sender, int id)
     {
         await sender.Send(new DeleteTodoListCommand(id));

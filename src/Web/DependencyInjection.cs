@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 using Azure.Identity;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Infrastructure.Data;
@@ -50,8 +51,6 @@ public static class DependencyInjection
         builder.Services.AddAuthentication(config =>
         {
             config.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            //config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(config =>
         {
@@ -86,7 +85,7 @@ public static class DependencyInjection
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = @"Enter 'Bearer' [space] and then your token in the text input below",
+                Description = @"Enter 'Bearer' [space][token]",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
@@ -97,6 +96,30 @@ public static class DependencyInjection
             {
                 [new OpenApiSecuritySchemeReference("Bearer", document)] = []
             });
+        });
+
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            //ALL Address
+            //options.AddFixedWindowLimiter("fixed", opt =>
+            //{
+            //    opt.PermitLimit = 5;
+            //    opt.Window = TimeSpan.FromSeconds(5);
+            //    opt.QueueLimit = 0;
+            //});
+
+            //PER IP Address
+            options.AddPolicy("fixed", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromSeconds(5),
+                        QueueLimit = 0
+                    }));
         });
     }
 

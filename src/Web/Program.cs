@@ -1,7 +1,4 @@
-using System.Reflection;
 using CleanArchitecture.Infrastructure.Data;
-using Microsoft.OpenApi;
-using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,10 +25,7 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseCors(static builder => 
-                    builder.AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowAnyOrigin());
+app.UseCors(static builder => builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin());
 
 app.UseFileServer();
 
@@ -51,6 +45,9 @@ app.UseExceptionHandler(options => { });
 app.MapDefaultEndpoints();
 
 app.MapEndpoints(typeof(Program).Assembly);
+
+app.UseRateLimiter();
+//app.MapGroup("/api").RequireRateLimiting("fixed");
 
 app.Run();
 

@@ -15,6 +15,7 @@ public static class InfrastructureDependencyInjection
     public static void AddInfrastructure(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString(Services.Database);
+
         Guard.Against.Null(connectionString, message: $"Connection string '{Services.Database}' not found.");
 
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
